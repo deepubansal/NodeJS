@@ -1,11 +1,20 @@
 var queryString = require('querystring');
+var application_root = __dirname;
+var path = require("path");
 
+console.log(application_root)
 function start(getRoute) {
-	var server = require('http').createServer();
+	//var server = require('http').createServer();
 	var url = require("url");
+	
+	var express = require('express');
+	var app = express();
+	app.set('port', process.env.PORT || 8181);
+	app.use('/ui/', express.static(path.join(application_root, "UI/app")));
 
-	function requestHandler(request, response) {
 
+
+	function requestHandler(request, response, method) {
 		var postData = "";
 		request.setEncoding("utf8");
 		var parsedUrl = url.parse(request.url);
@@ -16,13 +25,15 @@ function start(getRoute) {
 			postData += postDataChunk;
 		});
 		request.addListener("end", function() {
-			postData = queryString.parse(postData);
+			if (postData)
+				postData = JSON.parse(postData);
 			console.log(postData)
-			getRoute(parsedUrl.pathname)(response, postData, queryData);
+			getRoute(parsedUrl.pathname, method)(response, postData, queryData);
 		});
 	}
-	server.on('request', requestHandler);
-	server.listen(8181);
+	app.get('/api/*', function (request, response) { requestHandler(request, response, 'GET');});
+	app.post('/api/*', function (request, response) { requestHandler(request, response, 'POST');});
+	app.listen(8181);
 }
 
 exports.start = start;

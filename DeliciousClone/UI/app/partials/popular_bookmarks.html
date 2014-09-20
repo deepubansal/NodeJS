@@ -1,0 +1,15 @@
+<table>
+<thead>
+      <tr><th colspan="4">Popular Bookmarks</th></tr>
+    </thead>
+    <tbody>
+      <tr ng-repeat="bookmark in popularBoomarksList">
+        <td>{{$index + 1}}</td>
+        <td>
+          {{bookmark.url}} 
+          <p> {{bookmark.tags.join()}} </p>
+        </td>
+        <td>({{bookmark.count}} times)</td>
+      </tr>
+    </tbody>
+</table>

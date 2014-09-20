@@ -56,15 +56,14 @@ var createUser = function(response, postData, queryData) {
 	} else {
 		if (utility.findIndexByAttr(users, 'email', postData.email).length == 0) {
 			var user = {};
-			user.email = postData.email;	
+			user.email = postData.email;
 			user.password = postData.password;
 			users.push(user);
 			jf.writeFile(usersFile, users, function(err) {
 				console.log(err)
 			});
 			httpHelper.sendSuccess(response, JSON.stringify(user));
-		}
-		else {
+		} else {
 			httpHelper.sendError(response, 400, "Bad Request: A user with this email is already registered.")
 		}
 	}
@@ -81,8 +80,7 @@ var addBookmark = function(response, postData, queryData) {
 			bookmark.url = postData.bookmark;
 			if (postData.tags instanceof Array) {
 				bookmark.tags = postData.tags;
-			}
-			else {
+			} else {
 				bookmark.tags = postData.tags.replace(' ,', ',').replace(', ', ',').split(',');
 			}
 			bookmark.by = loggedInUsers[ind[0]].email;
@@ -114,35 +112,26 @@ var myBookmarks = function(response, postData, queryData) {
 	}
 }
 
-var allBookmarks = function(response, postData, queryData) {
-	if (postData.sessionId == undefined) {
-		console.log('Bad request: ' + postData);
-		httpHelper.sendError(response, 403, "Invalid session. Try logging in again");
-	} else {
-		var ind = utility.findIndexByAttr(loggedInUsers, 'sessionId', postData['sessionId']);
-
-		if (ind.length != 0) {
-			var groupedBookMarks = [];
-			for (var i = 0; i < bookmarks.length; ++i) {
-				var currentGroup = utility.findIndexByAttr(groupedBookMarks, 'url', bookmarks[i].url);
-				if (currentGroup.length == 0) {
-					var groupBookmark = {};
-					groupBookmark.url = bookmarks[i].url;
-					groupBookmark.tags = bookmarks[i].tags;
-					groupBookmark.count = 1;
-					groupedBookMarks.push(groupBookmark);
-				}
-				else {
-					var groupBookmark = groupedBookMarks[currentGroup[0]];
-					groupBookmark.count++;
-					groupBookmark.tags = utility.arrayUnique(groupBookmark.tags.concat(bookmarks[i].tags));
-				}
-			}
-			groupedBookMarks.sort(function(a,b){return b.count - a.count});
-			httpHelper.sendSuccess(response, JSON.stringify(groupedBookMarks));
-		} else
-			httpHelper.sendError(response, 403, "Invalid session. Try logging in again");
+var popularBookmarks = function(response, postData, queryData) {
+	var groupedBookMarks = [];
+	for (var i = 0; i < bookmarks.length; ++i) {
+		var currentGroup = utility.findIndexByAttr(groupedBookMarks, 'url', bookmarks[i].url);
+		if (currentGroup.length == 0) {
+			var groupBookmark = {};
+			groupBookmark.url = bookmarks[i].url;
+			groupBookmark.tags = bookmarks[i].tags;
+			groupBookmark.count = 1;
+			groupedBookMarks.push(groupBookmark);
+		} else {
+			var groupBookmark = groupedBookMarks[currentGroup[0]];
+			groupBookmark.count++;
+			groupBookmark.tags = utility.arrayUnique(groupBookmark.tags.concat(bookmarks[i].tags));
+		}
 	}
+	groupedBookMarks.sort(function(a, b) {
+		return b.count - a.count
+	});
+	httpHelper.sendSuccess(response, JSON.stringify(groupedBookMarks));
 }
 
 
@@ -151,4 +140,4 @@ exports.logout = logout;
 exports.createUser = createUser;
 exports.addBookmark = addBookmark;
 exports.myBookmarks = myBookmarks;
-exports.allBookmarks = allBookmarks;
+exports.popularBookmarks = popularBookmarks;

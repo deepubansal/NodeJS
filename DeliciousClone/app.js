@@ -4,9 +4,9 @@ var services = require('./services');
 
 server.start(controller.getRoute);
 
-controller.addRoute('/login', services.login);
-controller.addRoute('/logout', services.logout);	
-controller.addRoute('/signup', services.createUser);	
-controller.addRoute('/bookmark', services.addBookmark);	
-controller.addRoute('/mybookmarks', services.myBookmarks);	
-controller.addRoute('/', services.allBookmarks);	
+controller.addRoute('/api/login', services.login, 'POST');
+controller.addRoute('/api/logout', services.logout, 'POST');	
+controller.addRoute('/api/signup', services.createUser, 'POST');	
+controller.addRoute('/api/bookmark', services.addBookmark, 'POST');	
+controller.addRoute('/api/mybookmarks', services.myBookmarks, 'POST');	
+controller.addRoute('/api/popular', services.popularBookmarks, 'GET');	

@@ -44,6 +44,8 @@ controller('userController', function($scope, $location, $rootScope, deliciousSe
     deliciousService.login($scope.login).
     success(function(response) {
       $rootScope.sessionId = response.sessionId;
+      $rootScope.isLoggedIn = true;
+      $rootScope.loggedInEmail = response.email;
       $location.path('/mybookmarks');
     }).
 
@@ -59,8 +61,7 @@ controller('userController', function($scope, $location, $rootScope, deliciousSe
     }
     deliciousService.login($scope.login).
     success(function(response) {
-      $rootScope.sessionId = response.sessionId;
-      $location.path('/mybookmarks');
+      $location.path('/login');
     }).
 
     error(function(data, status, headers, config) {
@@ -69,4 +70,24 @@ controller('userController', function($scope, $location, $rootScope, deliciousSe
 
   }
 
+
+  $rootScope.logout = function() {
+    var req = {};
+    req.sessionId = $rootScope.sessionId;
+    deliciousService.logout(req).
+    success(function(response) {
+      $rootScope.sessionId = null;
+      $rootScope.isLoggedIn = false;
+      $rootScope.loggedInEmail = null;
+      $location.path('/login');
+    }).
+
+    error(function(data, status, headers, config) {
+      $rootScope.sessionId = null;
+      $rootScope.isLoggedIn = false;
+      $rootScope.loggedInEmail = null;
+      $location.path('/login');
+    });
+
+  }
 });

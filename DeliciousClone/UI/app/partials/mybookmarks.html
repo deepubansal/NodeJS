@@ -1,8 +1,12 @@
 <table>
 <thead>
-      <tr><th colspan="3">My Bookmarks</th></tr>
+      <tr><th colspan="2">My Bookmarks</th></tr>
     </thead>
     <tbody>
+    <tr>
+      
+      <td colspan="2"> <a href="#/createBookmark">Add New</td>
+    </tr>
       <tr ng-repeat="bookmark in myBookmarks">
         <td>{{$index + 1}}</td>
         <td>
@@ -10,5 +14,6 @@
           <p> {{bookmark.tags.join()}} </p>
         </td>
       </tr>
+
     </tbody>
 </table>

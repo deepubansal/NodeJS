@@ -13,5 +13,8 @@ angular.module('DeliciousApp.services', [])
     deliciousService.login = function(login) {
       return $http.post('/api/login', login);
     }
+    deliciousService.logout = function(sessionId) {
+      return $http.post('/api/logout', sessionId);
+    }
     return deliciousService;
   });

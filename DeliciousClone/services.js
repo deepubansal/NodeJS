@@ -1,11 +1,11 @@
 var jf = require('jsonfile');
 var httpHelper = require('./httpHelper');
 var utility = require('./utility')
+var sessionManager = require('./sessionManager')
 var usersFile = 'data/users.data'
 var bookmarksFile = 'data/bookmarks.data'
 
 var users = [];
-var loggedInUsers = [];
 var bookmarks = [];
 
 jf.readFile(usersFile, function(err, obj) {
@@ -25,31 +25,28 @@ jf.readFile(bookmarksFile, function(err, obj) {
 	}
 });
 
-var login = function(response, postData, queryData) {
-	var loginInfo = {};
+var login = function(response, data) {
+	var postData = data.postData;
 	if (utility.checkPassword(users, postData['email'], postData['password'])) {
-		loginInfo.email = postData['email'];
-		loginInfo.sessionId = utility.guid();
-		loggedInUsers.push(loginInfo);
-		httpHelper.sendSuccess(response, JSON.stringify(loginInfo));
+		var loginInfo = sessionManager.createSession(postData.email);
+		if (loginInfo)
+			httpHelper.sendSuccess(response, JSON.stringify(loginInfo));
+		else
+			httpHelper.sendError(response, 403, "User is already Logged In");
 	} else {
 		httpHelper.sendError(response, 403, "Invalid Username or password")
 	}
-	console.log(loggedInUsers);
 }
 
-var logout = function(response, postData, queryData) {
-	var beforeLength = loggedInUsers.length;
-	console.log(postData.sessionId)
-	loggedInUsers = utility.removeByAttr(loggedInUsers, 'sessionId', postData.sessionId);
-	if (loggedInUsers.length < beforeLength)
+var logout = function(response, data) {
+	if (sessionManager.destroySession(data.loginInfo.email))
 		httpHelper.sendSuccess(response, "Logged Out Successfully");
 	else
 		httpHelper.sendError(response, 400, "Session Invalid");
-	console.log(loggedInUsers);
 }
 
-var createUser = function(response, postData, queryData) {
+var createUser = function(response, data) {
+	var postData = data.postData;
 	if (postData.email == undefined || postData.password == undefined) {
 		console.log('Bad request: ' + postData);
 		httpHelper.sendError(response, 400, "Bad Request: Email and password are mandatory.")
@@ -69,50 +66,36 @@ var createUser = function(response, postData, queryData) {
 	}
 }
 
-var addBookmark = function(response, postData, queryData) {
-	if (postData.sessionId == undefined || postData.bookmark == undefined) {
+var addBookmark = function(response, data) {
+	var postData = data.postData;
+	if (postData.bookmark == undefined) {
 		console.log('Bad request: ' + postData);
-		httpHelper.sendError(response, 400, "Bad Request: Invalid bookmark or session.")
+		httpHelper.sendError(response, 400, "Bad Request: Invalid bookmark.")
 	} else {
-		var ind = utility.findIndexByAttr(loggedInUsers, 'sessionId', postData['sessionId']);
-		if (ind.length != 0) {
-			var bookmark = {}
-			bookmark.url = postData.bookmark;
-			if (postData.tags instanceof Array) {
-				bookmark.tags = postData.tags;
-			} else {
-				bookmark.tags = postData.tags.replace(' ,', ',').replace(', ', ',').split(',');
-			}
-			bookmark.by = loggedInUsers[ind[0]].email;
-			bookmarks.push(bookmark);
-			jf.writeFile(bookmarksFile, bookmarks, function(err) {
-				console.log(err)
-			});
-			httpHelper.sendSuccess(response, JSON.stringify(bookmark));
-		} else
-			httpHelper.sendError(response, 403, "Invalid session. Try logging in again");
+		var bookmark = {}
+		bookmark.url = postData.bookmark;
+		if (postData.tags instanceof Array)
+			bookmark.tags = postData.tags;
+		else
+			bookmark.tags = postData.tags.replace(' ,', ',').replace(', ', ',').split(',');
+		bookmark.by = data.loginInfo.email;
+		bookmarks.push(bookmark);
+		jf.writeFile(bookmarksFile, bookmarks, function(err) {
+			console.log(err)
+		});
+		httpHelper.sendSuccess(response, JSON.stringify(bookmark));
 	}
 }
 
-var myBookmarks = function(response, postData, queryData) {
-	if (postData.sessionId == undefined) {
-		console.log('Bad request: ' + postData);
-		httpHelper.sendError(response, 403, "Invalid session. Try logging in again");
-	} else {
-		var ind = utility.findIndexByAttr(loggedInUsers, 'sessionId', postData['sessionId']);
-		if (ind.length != 0) {
-			var bookmarkIndexes = utility.findIndexByAttr(bookmarks, 'by', loggedInUsers[ind[0]].email);
-			var myBookmarks = [];
-			for (var i = 0; i < bookmarkIndexes.length; ++i) {
-				myBookmarks.push(bookmarks[bookmarkIndexes[i]]);
-			}
-			httpHelper.sendSuccess(response, JSON.stringify(myBookmarks));
-		} else
-			httpHelper.sendError(response, 403, "Invalid session. Try logging in again");
-	}
+var myBookmarks = function(response, data) {
+	var bookmarkIndexes = utility.findIndexByAttr(bookmarks, 'by', data.loginInfo.email);
+	var myBookmarks = [];
+	for (var i = 0; i < bookmarkIndexes.length; ++i)
+		myBookmarks.push(bookmarks[bookmarkIndexes[i]]);
+	httpHelper.sendSuccess(response, JSON.stringify(myBookmarks));
 }
 
-var popularBookmarks = function(response, postData, queryData) {
+var popularBookmarks = function(response, data) {
 	var groupedBookMarks = [];
 	for (var i = 0; i < bookmarks.length; ++i) {
 		var currentGroup = utility.findIndexByAttr(groupedBookMarks, 'url', bookmarks[i].url);
@@ -134,6 +117,18 @@ var popularBookmarks = function(response, postData, queryData) {
 	httpHelper.sendSuccess(response, JSON.stringify(groupedBookMarks));
 }
 
+var checkAuthentication = function(request, response) {
+	var sessionId = httpHelper.getSessionIdFromHeader(request);
+	console.log('sessionId from header' + sessionId);
+	if (sessionId) {
+		var loginInfo = sessionManager.getLoginInfo(sessionId);
+		console.log(loginInfo)
+		if (loginInfo)
+			return loginInfo;
+	}
+	return null;
+}
+
 
 exports.login = login;
 exports.logout = logout;
@@ -141,3 +136,4 @@ exports.createUser = createUser;
 exports.addBookmark = addBookmark;
 exports.myBookmarks = myBookmarks;
 exports.popularBookmarks = popularBookmarks;
+exports.checkAuthentication = checkAuthentication;

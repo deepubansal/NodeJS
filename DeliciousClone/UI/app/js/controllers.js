@@ -7,50 +7,48 @@ controller('popularBookmarksController', function($scope, $rootScope, deliciousS
   });
 }).
 
-controller('bookmarksController', function($scope, $location, $rootScope, deliciousService) {
-
-  $scope.getMyBookmarks = function() {
-    var req = {};
-    req.sessionId = $rootScope.sessionId;
-    deliciousService.getMyBookmarks(req).success(function(response) {
-      $scope.myBookmarks = response;
-    }).
-    error(function(data, status, headers, config) {
-      $location.path('/login');
-    });
-
-    ;
-  };
-  $scope.getMyBookmarks();
-  $scope.newBookmark = {};
-  $scope.newBookmark.sessionId = $rootScope.sessionId;
-  $scope.newBookmark.bookmark = "URL";
-  $scope.newBookmark.tags = "Tags (comma separated)";
-
-  $scope.saveBookmark = function() {
-    deliciousService.createBookmark($scope.newBookmark).success(function(response) {
-      $location.path('/mybookmarks');
-    });
-  };
+controller('bookmarksController', function($scope, $window, $location, $rootScope, deliciousService) {
+  var req = {};
+  req.sessionId = $window.sessionStorage.token;
+  deliciousService.getMyBookmarks(req).success(function(response) {
+    $scope.myBookmarks = response;
+  }).
+  error(function(data, status, headers, config) {
+    $location.path('/login');
+  });
 }).
 
-controller('userController', function($scope, $location, $rootScope, deliciousService) {
+controller('bookmarkController', function($scope, $location, $window, $rootScope, deliciousService) {
+  if ($rootScope.isLoggedIn) {
+    $scope.newBookmark = {};
+    $scope.newBookmark.sessionId = $window.sessionStorage.token;
+    $scope.saveBookmark = function() {
+      deliciousService.createBookmark($scope.newBookmark).success(function(response) {
+        $location.path('/mybookmarks');
+      });
+    };
+  } else {
+    $location.path('/login');
+  }
+}).
+
+controller('userController', function($scope, $location, $window, $rootScope, deliciousService, AuthenticationService) {
   $scope.login = {};
   // $scope.login.email = "Email";
   // $scope.login.password = "Password";  
   // $scope.login.confirmPassword = "Confirm Password";  
-  
+
   $scope.doLogin = function() {
     deliciousService.login($scope.login).
     success(function(response) {
-      $rootScope.sessionId = response.sessionId;
-      $rootScope.isLoggedIn = true;
+      AuthenticationService.isLogged = true;
+      $rootScope.isLoggedIn = AuthenticationService.isLogged;
+      $window.sessionStorage.token = response.sessionId;
       $rootScope.loggedInEmail = response.email;
       $location.path('/mybookmarks');
     }).
 
     error(function(data, status, headers, config) {
-      alert(status);
       $location.path('/login');
     });
   };
@@ -59,7 +57,7 @@ controller('userController', function($scope, $location, $rootScope, deliciousSe
     if ($scope.login.password != $scope.login.confirmPassword) {
       return;
     }
-    deliciousService.login($scope.login).
+    deliciousService.signup($scope.login).
     success(function(response) {
       $location.path('/login');
     }).
@@ -73,18 +71,20 @@ controller('userController', function($scope, $location, $rootScope, deliciousSe
 
   $rootScope.logout = function() {
     var req = {};
-    req.sessionId = $rootScope.sessionId;
+    req.sessionId = $window.sessionStorage.token;
     deliciousService.logout(req).
     success(function(response) {
-      $rootScope.sessionId = null;
-      $rootScope.isLoggedIn = false;
+      AuthenticationService.isLogged = false;
+      $rootScope.isLoggedIn = AuthenticationService.isLogged;
+      delete $window.sessionStorage.token;
       $rootScope.loggedInEmail = null;
       $location.path('/login');
     }).
 
     error(function(data, status, headers, config) {
-      $rootScope.sessionId = null;
-      $rootScope.isLoggedIn = false;
+      AuthenticationService.isLogged = false;
+      $rootScope.isLoggedIn = AuthenticationService.isLogged;
+      delete $window.sessionStorage.token;
       $rootScope.loggedInEmail = null;
       $location.path('/login');
     });

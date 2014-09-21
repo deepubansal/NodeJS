@@ -21,10 +21,10 @@
 
 
 
-<div ng-show="isLoggedIn">
+<div ng-show="isLoggedIn" ng-controller="logoutController">
     <ul>
       <li><a href="#/" style="float: left;">Home</a></li>
-      <li><a href="#" ng-click="logout();" >Logout</a></li>
+      <li><a href="" ng-click="logout()" >Logout</a></li>
       <li><a href="#/mybookmarks" >Hi, {{loggedInEmail}}</a></li>
     </ul>
 </div>

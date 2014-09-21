@@ -3,12 +3,15 @@ Popular Bookmarks
 </h2>
 <table cellspacing='0'>
     <tbody>
-      <tr ng-repeat="bookmark in popularBoomarksList">
+    <div>
+      <tr ng-repeat="bookmark in popularBoomarksList" ng-show="isVisible[{{$index}}]">
         <td>
         <a href="{{bookmark.url}}">{{bookmark.url}}</a>
           <p style="font-size: x-small">{{bookmark.tags.join(", ")}} </p>
         </td>
         <td>({{bookmark.count}} times)</td>
       </tr>
+     </div>
+      <tr><td colspan="2" style=" text-align: center; "><button ng-click="loadMore()" ng-show = "topMax < total">Load More</button></td></tr>
     </tbody>
 </table>

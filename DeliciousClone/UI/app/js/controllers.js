@@ -4,6 +4,17 @@ controller('popularBookmarksController', function($scope, $rootScope, deliciousS
   $scope.popularBoomarksList = [];
   deliciousService.getPopularBookmarks().success(function(response) {
     $scope.popularBoomarksList = response;
+    $scope.topMax = 5;
+    $scope.total = response.length;
+    $scope.isVisible = [];
+    for (var i = 0; i < $scope.total; i++)
+        $scope.isVisible.push(i < $scope.topMax);
+    $scope.loadMore = function() {
+      $scope.topMax += 5;
+      for (var i = $scope.topMax - 5; i < $scope.topMax && $scope.total; i++) {
+        $scope.isVisible[i] = true;
+      };
+    }
   });
 }).
 
@@ -44,6 +55,7 @@ controller('userController', function($scope, $location, $window, $rootScope, de
       AuthenticationService.isLogged = true;
       $rootScope.isLoggedIn = AuthenticationService.isLogged;
       $window.sessionStorage.token = response.sessionId;
+      $window.sessionStorage.loggedInEmail = response.email;
       $rootScope.loggedInEmail = response.email;
       $location.path('/mybookmarks');
     }).
@@ -67,9 +79,11 @@ controller('userController', function($scope, $location, $window, $rootScope, de
     });
 
   }
+}).
 
+controller('logoutController', function($scope, $location, $window, $rootScope, deliciousService, AuthenticationService) {
 
-  $rootScope.logout = function() {
+  $scope.logout = function() {
     var req = {};
     req.sessionId = $window.sessionStorage.token;
     deliciousService.logout(req).
@@ -77,6 +91,7 @@ controller('userController', function($scope, $location, $window, $rootScope, de
       AuthenticationService.isLogged = false;
       $rootScope.isLoggedIn = AuthenticationService.isLogged;
       delete $window.sessionStorage.token;
+      delete $window.sessionStorage.loggedInEmail;
       $rootScope.loggedInEmail = null;
       $location.path('/login');
     }).
@@ -85,9 +100,10 @@ controller('userController', function($scope, $location, $window, $rootScope, de
       AuthenticationService.isLogged = false;
       $rootScope.isLoggedIn = AuthenticationService.isLogged;
       delete $window.sessionStorage.token;
+      delete $window.sessionStorage.loggedInEmail;
       $rootScope.loggedInEmail = null;
       $location.path('/login');
     });
 
-  }
+  };
 });

@@ -50,6 +50,7 @@ appServices.factory('TokenInterceptor', function($q, $window, $rootScope, $locat
       if (response != null && response.status == 200 && $window.sessionStorage.token && !AuthenticationService.isLogged) {
         AuthenticationService.isLogged = true;
         $rootScope.isLoggedIn = AuthenticationService.isLogged;
+        $rootScope.loggedInEmail = $window.sessionStorage.loggedInEmail;
       }
       return response || $q.when(response);
     },
@@ -58,6 +59,7 @@ appServices.factory('TokenInterceptor', function($q, $window, $rootScope, $locat
     responseError: function(rejection) {
       if (rejection != null && rejection.status === 401 && ($window.sessionStorage.token || AuthenticationService.isLogged)) {
         delete $window.sessionStorage.token;
+        delete $window.sessionStorage.loggedInEmail;
         AuthenticationService.isLogged = false;
         $rootScope.isLoggedIn = AuthenticationService.isLogged;
         $location.path("/login");

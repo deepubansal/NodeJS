@@ -18,22 +18,30 @@ app.config(['$routeProvider', '$httpProvider',
 		when("/login", {
 			templateUrl: "partials/login.html",
 			controller: "userController",
-			access: { requiredAuthentication: false }
+			access: {
+				requiredAuthentication: false
+			}
 		}).
 		when("/mybookmarks", {
 			templateUrl: "partials/mybookmarks.html",
 			controller: "bookmarksController",
-			access: { requiredAuthentication: true }
+			access: {
+				requiredAuthentication: true
+			}
 		}).
 		when("/createBookmark", {
 			templateUrl: "partials/create_bookmark.html",
 			controller: "bookmarkController",
-			access: { requiredAuthentication: true }
+			access: {
+				requiredAuthentication: true
+			}
 		}).
 		when("/signup", {
 			templateUrl: "partials/signup.html",
 			controller: "userController",
-			access: { requiredAuthentication: false }
+			access: {
+				requiredAuthentication: false
+			}
 		}).
 		otherwise({
 			redirectTo: '/'
@@ -42,17 +50,15 @@ app.config(['$routeProvider', '$httpProvider',
 ]);
 
 
-app.config(function ($httpProvider) {
-    $httpProvider.interceptors.push('TokenInterceptor');
+app.config(function($httpProvider) {
+	$httpProvider.interceptors.push('TokenInterceptor');
 });
 
-app.run(function($rootScope, $location, $window, AuthenticationService) {
-    $rootScope.$on("$routeChangeStart", function(event, nextRoute, currentRoute) {
-        //redirect only if both isAuthenticated is false and no token is set
-        if (nextRoute != null && nextRoute.access != null && nextRoute.access.requiredAuthentication 
-            && !AuthenticationService.isLogged && !$window.sessionStorage.token) {
-
-            $location.path("/admin/login");
-        }
-    });
+app.run(function($rootScope, $location, $window, AuthenticationService, deliciousService) {
+	$rootScope.$on("$routeChangeStart", function(event, nextRoute, currentRoute) {
+		//redirect only if both isAuthenticated is false and no token is set
+		if (nextRoute != null && nextRoute.access != null && nextRoute.access.requiredAuthentication && !AuthenticationService.isLogged && !$window.sessionStorage.token) {
+			$location.path("/login");
+		}
+	});
 });

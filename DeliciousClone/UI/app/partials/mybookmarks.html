@@ -1,18 +1,14 @@
+<h2>My Bookmarks</h2>
+<a href="#/createBookmark">Add New</a>
 <table>
 <thead>
-      <tr><th colspan="2">My Bookmarks</th></tr>
-    </thead>
     <tbody>
-    <tr>
-      <td colspan="2"> <a href="#/createBookmark">Add New</td>
-    </tr>
       <tr ng-repeat="bookmark in myBookmarks">
-        <td>{{$index + 1}}</td>
-        <td>
-          {{bookmark.url}} 
-          <p> {{bookmark.tags.join()}} </p>
+       <td>
+        <a href="{{bookmark.url}}">{{bookmark.url}}</a>
+          <p style="font-size: x-small">{{bookmark.tags.join(", ")}} </p>
         </td>
-      </tr>
+              </tr>
 
     </tbody>
 </table>

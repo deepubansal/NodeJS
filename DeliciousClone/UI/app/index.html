@@ -1,19 +1,49 @@
 <html>
 <head>
   <title>Delicious</title>
+  <link rel="stylesheet" href="css/app.css" type="text/css" media="screen">
 </head>
-<a href="#/" >Home</a>
+
+
+
+
+
+<body ng-app="DeliciousApp">
+
+
+<div id="container">
+  <div id="header">
+    <h1>
+      BookMark App
+    </h1>
+  </div>
+  <div id="navigation">
+
+
 
 <div ng-show="isLoggedIn">
-	<a href="#/mybookmarks" >{{loggedInEmail}}</a>
-	<a href="#" ng-click="logout();" >Logout</a>
+    <ul>
+      <li><a href="#/" style="float: left;">Home</a></li>
+      <li><a href="#" ng-click="logout();" >Logout</a></li>
+      <li><a href="#/mybookmarks" >Hi, {{loggedInEmail}}</a></li>
+    </ul>
 </div>
 <div ng-hide="isLoggedIn">
-  <a href="#/login">Login</a>
-	<a href="#/signup">Sign Up</a>
+  <ul>
+      <li><a href="#/" style="float: left;">Home</a></li>
+      <li><a href="#/signup">Sign Up</a></li>
+      <li><a href="#/login">Login</a></li>
+ </ul>
 </div>
-<body ng-app="DeliciousApp">
+</div>
+  <div id="content">
   <ng-view></ng-view>
+
+  </div>
+  <div id="footer">
+    Copyright © BookMark App, 2014
+  </div>
+</div>
   <script src="lib/angular.js"></script>
   <script src="lib/angular-route.js"></script>
   <script src="js/app.js"></script>
